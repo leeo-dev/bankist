@@ -11,6 +11,7 @@ class Bankist {
   #accounts;
   constructor(accounts) {
     this.#accounts = accounts;
+    this.#createUsername(this.#accounts);
     console.log(accounts);
     this.#selectDOMElements();
     this.#DisplayMovements(accounts[1].movements);
@@ -49,8 +50,16 @@ class Bankist {
         <div class="movements__date">3 days ago</div>
         <div class="movements__value">${movement} €</div>
       </div>`;
-      console.log(html);
       this.containerMovements.insertAdjacentHTML('afterbegin', html);
+    });
+  }
+  #createUsername(accounts) {
+    accounts.forEach(account => {
+      account.username = account.owner
+        .toLowerCase()
+        .split(' ')
+        .map(name => name[0])
+        .join('');
     });
   }
 }
