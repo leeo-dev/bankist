@@ -12,9 +12,10 @@ class Bankist {
   constructor(accounts) {
     this.#accounts = accounts;
     this.#createUsername(this.#accounts);
-    console.log(accounts);
     this.#selectDOMElements();
-    this.#DisplayMovements(accounts[1].movements);
+    this.#displayMovements(accounts[1].movements);
+    this.#displaySummary(accounts[1].movements);
+    console.log(accounts[1].movements);
   }
   #selectDOMElements() {
     // Elements
@@ -41,7 +42,7 @@ class Bankist {
     this.inputCloseUsername = document.querySelector('.form__input--user');
     this.inputClosePin = document.querySelector('.form__input--pin');
   }
-  #DisplayMovements(movements) {
+  #displayMovements(movements) {
     movements.forEach((movement, index) => {
       const typeMovement = movement < 0 ? 'withdrawal' : 'deposit';
       const order = index + 1;
@@ -61,6 +62,34 @@ class Bankist {
         .map(name => name[0])
         .join('');
     });
+  }
+  #displaySummary(movements) {
+    const income = movements
+      .filter(movement => movement > 0)
+      .reduce((previousMovement, currentMovement) => {
+        return previousMovement + currentMovement;
+      });
+
+    console.log(movements);
+
+    this.labelSumIn.textContent = `${income}€`;
+
+    const out = movements
+      .filter(movement => movement < 0)
+      .reduce((previousMovement, currentMovement) => {
+        return previousMovement + currentMovement;
+      });
+
+    this.labelSumOut.textContent = `${out}€`;
+
+    const interest = movements
+      .filter(movement => movement > 0)
+      .map(interest => (interest * 1.2) / 100)
+      .reduce((previousMovement, currentMovement) => {
+        return previousMovement + currentMovement;
+      });
+
+    this.labelSumInterest.textContent = `${interest}€`;
   }
 }
 
