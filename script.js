@@ -9,13 +9,12 @@ const currencies = new Map([
 
 class Bankist {
   #accounts;
+  #currentAccount;
   constructor(accounts) {
     this.#accounts = accounts;
     this.#createUsername(this.#accounts);
     this.#selectDOMElements();
-    this.#displayMovements(accounts[1].movements);
-    this.#displaySummary(accounts[1].movements);
-    console.log(accounts[1].movements);
+    this.#handleActions();
   }
   #selectDOMElements() {
     // Elements
@@ -29,8 +28,8 @@ class Bankist {
     this.labelTimer = document.querySelector('.timer');
     this.containerApp = document.querySelector('.app');
     this.containerMovements = document.querySelector('.movements');
-    this.btnLogin = document.querySelector('.login__btn');
-    this.btnTransfer = document.querySelector('.form__btn--transfer');
+    this.btnLogin = document.querySelector('.login');
+    this.btnTransfer = document.querySelector('#transfer');
     this.btnLoan = document.querySelector('.form__btn--loan');
     this.btnClose = document.querySelector('.form__btn--close');
     this.btnSort = document.querySelector('.btn--sort');
@@ -42,8 +41,13 @@ class Bankist {
     this.inputCloseUsername = document.querySelector('.form__input--user');
     this.inputClosePin = document.querySelector('.form__input--pin');
   }
-  #displayMovements(movements) {
-    movements.forEach((movement, index) => {
+  #handleActions() {
+    this.btnLogin.addEventListener('submit', this.#login.bind(this));
+    this.btnTransfer.addEventListener('submit', this.#transferMoney.bind(this));
+  }
+  #displayMovements(account) {
+    console.log(account);
+    account.movements.forEach((movement, index) => {
       const typeMovement = movement < 0 ? 'withdrawal' : 'deposit';
       const order = index + 1;
       const html = `<div class="movements__row">
@@ -63,18 +67,16 @@ class Bankist {
         .join('');
     });
   }
-  #displaySummary(movements) {
-    const income = movements
+  #displaySummary(account) {
+    const income = account.movements
       .filter(movement => movement > 0)
       .reduce((previousMovement, currentMovement) => {
         return previousMovement + currentMovement;
       });
 
-    console.log(movements);
-
     this.labelSumIn.textContent = `${income}€`;
 
-    const out = movements
+    const out = account.movements
       .filter(movement => movement < 0)
       .reduce((previousMovement, currentMovement) => {
         return previousMovement + currentMovement;
@@ -82,7 +84,7 @@ class Bankist {
 
     this.labelSumOut.textContent = `${out}€`;
 
-    const interest = movements
+    const interest = account.movements
       .filter(movement => movement > 0)
       .map(interest => (interest * 1.2) / 100)
       .reduce((previousMovement, currentMovement) => {
@@ -90,6 +92,46 @@ class Bankist {
       });
 
     this.labelSumInterest.textContent = `${interest}€`;
+  }
+  #login(event) {
+    event.preventDefault();
+    let data = [...new FormData(this.btnLogin)];
+    data = Object.fromEntries(data);
+    //prettier-ignore
+    const loggedUser = this.#accounts.find(account => account.username === data.username);
+    if (!loggedUser) return;
+    if (loggedUser?.pin === Number(data.pin)) {
+      this.#currentAccount = loggedUser;
+      this.containerApp.style.opacity = 1;
+      this.btnLogin.reset();
+      this.#updateUI(this.#currentAccount);
+    }
+  }
+  #calcAndDisplayBalance(account) {
+    //prettier-ignore
+    this.#currentAccount.balance = account.movements.reduce((currentMovement, nextMovement) => currentMovement + nextMovement, 0 );
+    this.labelBalance.textContent = `${this.#currentAccount.balance}€`;
+  }
+  #updateUI(account) {
+    this.#displayMovements(account);
+    this.#displaySummary(account);
+    this.#calcAndDisplayBalance(account);
+  }
+  #transferMoney(event) {
+    event.preventDefault();
+    const data = [...new FormData(this.btnTransfer)];
+    const { account, amount } = Object.fromEntries(data);
+    if (!account || !Number(amount)) return;
+    const receiverAccount = this.#accounts.find(
+      receiverAccount => receiverAccount.username === account
+    );
+    //prettier-ignore
+    if(this.#currentAccount.balance >= Number(amount) && receiverAccount){
+      this.#currentAccount.movements.push(-Number(amount));
+      receiverAccount.movements.push(Number(amount));
+      this.#updateUI(this.#currentAccount);
+
+    }
   }
 }
 
