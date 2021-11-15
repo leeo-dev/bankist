@@ -31,7 +31,7 @@ class Bankist {
     this.btnLogin = document.querySelector('.login');
     this.btnTransfer = document.querySelector('#transfer');
     this.btnLoan = document.querySelector('.form__btn--loan');
-    this.btnClose = document.querySelector('.form__btn--close');
+    this.btnClose = document.querySelector('#close-account');
     this.btnSort = document.querySelector('.btn--sort');
     this.inputLoginUsername = document.querySelector('.login__input--user');
     this.inputLoginPin = document.querySelector('.login__input--pin');
@@ -44,6 +44,7 @@ class Bankist {
   #handleActions() {
     this.btnLogin.addEventListener('submit', this.#login.bind(this));
     this.btnTransfer.addEventListener('submit', this.#transferMoney.bind(this));
+    this.btnClose.addEventListener('submit', this.#closeAccount.bind(this));
   }
   #displayMovements(account) {
     console.log(account);
@@ -132,6 +133,18 @@ class Bankist {
       this.#updateUI(this.#currentAccount);
 
     }
+  }
+  #closeAccount(event) {
+    event.preventDefault();
+    let data = [...new FormData(this.btnClose)];
+    const { username, pin } = Object.fromEntries(data);
+    //prettier-ignore
+    if(username === this.#currentAccount.username && Number(pin) === this.#currentAccount.pin){
+      const indexCloseAccount = this.#accounts.findIndex(account => account.username === username);
+      this.#accounts.splice(indexCloseAccount, 1);
+      this.containerApp.style.opacity = 0;
+    }
+    this.btnClose.reset();
   }
 }
 
