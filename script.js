@@ -30,7 +30,7 @@ class Bankist {
     this.containerMovements = document.querySelector('.movements');
     this.btnLogin = document.querySelector('.login');
     this.btnTransfer = document.querySelector('#transfer');
-    this.btnLoan = document.querySelector('.form__btn--loan');
+    this.btnLoan = document.querySelector('#request-loan');
     this.btnClose = document.querySelector('#close-account');
     this.btnSort = document.querySelector('.btn--sort');
     this.inputLoginUsername = document.querySelector('.login__input--user');
@@ -45,6 +45,7 @@ class Bankist {
     this.btnLogin.addEventListener('submit', this.#login.bind(this));
     this.btnTransfer.addEventListener('submit', this.#transferMoney.bind(this));
     this.btnClose.addEventListener('submit', this.#closeAccount.bind(this));
+    this.btnLoan.addEventListener('submit', this.#requestLoan.bind(this));
   }
   #displayMovements(account) {
     console.log(account);
@@ -145,6 +146,20 @@ class Bankist {
       this.containerApp.style.opacity = 0;
     }
     this.btnClose.reset();
+  }
+  #requestLoan(event) {
+    event.preventDefault();
+    const data = [...new FormData(this.btnLoan)];
+    const { amount } = Object.fromEntries(data);
+    const isValid = this.#currentAccount.movements.some(
+      movement => movement >= +amount * 0.1
+    );
+    console.log(isValid);
+    if (amount > 0 && isValid) {
+      this.#currentAccount.movements.push(+amount);
+      this.#updateUI(this.#currentAccount);
+    }
+    this.btnLoan.reset();
   }
 }
 
